@@ -1,3 +1,6 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
 COCOAPODS_PARALLEL_CODE_SIGN=false
+
+// Google Maps API key — replace with your key from Google Cloud Console.
+MAPS_API_KEY=YOUR_GOOGLE_MAPS_API_KEY_HERE

@@ -16,9 +16,13 @@ import 'package:zvolta_flutter/data/datasources/charge_sessions_datasource.dart'
 import 'package:zvolta_flutter/data/repositories/charge_sessions_repository_impl.dart';
 import 'package:zvolta_flutter/domain/repositories/charge_sessions_repository.dart';
 import 'package:zvolta_flutter/domain/usecases/get_charge_sessions_usecase.dart';
+import 'package:zvolta_flutter/data/repositories/map_repository_impl.dart';
+import 'package:zvolta_flutter/domain/repositories/map_repository.dart';
+import 'package:zvolta_flutter/domain/usecases/get_nearby_stations_usecase.dart';
 import 'package:zvolta_flutter/presentation/bloc/bottom_nav/bottom_nav_bloc.dart';
 import 'package:zvolta_flutter/presentation/bloc/charge_sessions/charge_sessions_bloc.dart';
 import 'package:zvolta_flutter/presentation/bloc/home/home_bloc.dart';
+import 'package:zvolta_flutter/presentation/bloc/map/map_bloc.dart';
 import 'package:zvolta_flutter/presentation/bloc/splash/splash_bloc.dart';
 
 final sl = GetIt.instance;
@@ -67,11 +71,16 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<ChargeSessionsRepository>(
       () => ChargeSessionsRepositoryImpl(localDataSource: sl()),
     )
-    ..registerLazySingleton(() => GetChargeSessionsUseCase(sl()));
+    ..registerLazySingleton(() => GetChargeSessionsUseCase(sl()))
+    ..registerLazySingleton<MapRepository>(MapRepositoryImpl.new)
+    ..registerLazySingleton(() => GetNearbyStationsUseCase(sl()));
 
   sl
     ..registerFactory(() => SplashBloc(checkAppInitializedUseCase: sl()))
     ..registerFactory(() => HomeBloc(getHomeDashboardUseCase: sl()))
     ..registerFactory(() => ChargeSessionsBloc(getChargeSessionsUseCase: sl()))
+    ..registerFactory<MapBloc>(
+      () => MapBloc(getNearbyStationsUseCase: sl()),
+    )
     ..registerFactory(BottomNavBloc.new);
 }

@@ -27,7 +27,8 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 flutter_ios_podfile_setup
 
 target 'Runner' do
-  use_frameworks!
+  # Static linkage is recommended for Google Maps + Firebase on iOS.
+  use_frameworks! :linkage => :static
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
@@ -40,66 +41,26 @@ post_install do |installer|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
-      # Simulator builds do not require signed pod frameworks; skipping avoids
-      # CodeSign failures from iCloud xattrs in ~/Documents ("detritus not allowed").
       config.build_settings['CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]'] = 'NO'
       config.build_settings['CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]'] = 'NO'
-      config.build_settings['CODE_SIGN_IDENTITY[sdk=iphonesimulator*]'] = ''
+      config.build_settings['CODE_SIGNING_IDENTITY[sdk=iphonesimulator*]'] = ''
       config.build_settings['EXPANDED_CODE_SIGN_IDENTITY[sdk=iphonesimulator*]'] = ''
       config.build_settings['COPYFILE_DISABLE'] = 'YES'
     end
   end
 
-  pods_root = File.join(File.dirname(File.realpath(__FILE__)), 'Pods')
-  if File.directory?(pods_root)
-    # Remove iCloud conflict duplicates (e.g. "pb_encode 2.c") that break Libtool linking.
-    system('find', pods_root, '-name', '* 2.*', '-delete')
-    system('find', pods_root, '-name', '* 2', '-depth', '-exec', 'rm', '-rf', '{}', '+')
-  end
-
-  # Keep iOS build artifacts outside iCloud-synced ~/Documents.
+  # Keep iOS build artifacts outside iCloud-synced ~/Documents when possible.
   project_root = File.expand_path('..', __FILE__)
-  build_ios = File.join(project_root, 'build', 'ios')
+  build_dir = File.join(project_root, 'build')
+  build_ios = File.join(build_dir, 'ios')
+  build_native_assets = File.join(build_dir, 'native_assets')
   cache_ios = File.join(ENV['HOME'], 'Library', 'Caches', 'zvolta_flutter_ios_build', 'flutter_app_ios')
-  system('mkdir', '-p', cache_ios)
-  system('rm', '-rf', build_ios)
-  system('ln', '-sf', cache_ios, build_ios)
-
-  # Patch embed script: rsync copies iCloud xattrs that break codesign.
-  Dir.glob(File.join(installer.sandbox.root, 'Target Support Files', 'Pods-*', 'Pods-*-frameworks.sh')).each do |frameworks_sh|
-    content = File.read(frameworks_sh)
-    unless content.include?('strip_xattrs_for_codesign')
-      strip_fn = <<~'SHELL'
-
-        strip_xattrs_for_codesign() {
-          export COPYFILE_DISABLE=1
-          if [ -e "$1" ]; then
-            local tmp="${1}.nostxattr"
-            rm -rf "${tmp}"
-            cp -R -X "$1" "${tmp}"
-            rm -rf "$1"
-            mv "${tmp}" "$1"
-          fi
-        }
-      SHELL
-
-      content = content.sub('code_sign_if_enabled() {', strip_fn + "code_sign_if_enabled() {")
-      content = content.sub(
-        'echo "Code Signing $1 with Identity ${EXPANDED_CODE_SIGN_IDENTITY_NAME}"',
-        "strip_xattrs_for_codesign \"$1\"\n    echo \"Code Signing $1 with Identity ${EXPANDED_CODE_SIGN_IDENTITY_NAME}\"",
-      )
-    end
-
-    unless content.include?('COPYFILE_DISABLE=1 cp -R -X')
-      content = content.sub(
-        /rsync --delete -av "\$\{RSYNC_PROTECT_TMP_FILES\[@\]\}" --links --filter "- CVS\/" --filter "- \.svn\/" --filter "- \.git\/" --filter "- \.hg\/" --filter "- Headers" --filter "- PrivateHeaders" --filter "- Modules" "\$\{source\}" "\$\{destination\}"/,
-        'export COPYFILE_DISABLE=1
-  echo "cp -R -X ${source} ${destination}"
-  rm -rf "${destination}/$(basename "${source}")"
-  cp -R -X "${source}" "${destination}/"',
-      )
-    end
-
-    File.write(frameworks_sh, content)
-  end
+  cache_native_assets = File.join(ENV['HOME'], 'Library', 'Caches', 'zvolta_flutter_ios_build', 'native_assets')
+  FileUtils.mkdir_p(cache_ios)
+  FileUtils.mkdir_p(cache_native_assets)
+  FileUtils.mkdir_p(build_dir)
+  system('rm', '-rf', build_ios) if File.exist?(build_ios) && !File.symlink?(build_ios)
+  system('rm', '-rf', build_native_assets) if File.exist?(build_native_assets) && !File.symlink?(build_native_assets)
+  FileUtils.ln_sf(cache_ios, build_ios) unless File.symlink?(build_ios)
+  FileUtils.ln_sf(cache_native_assets, build_native_assets) unless File.symlink?(build_native_assets)
 end

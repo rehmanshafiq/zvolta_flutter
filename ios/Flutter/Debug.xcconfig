@@ -2,3 +2,6 @@
 #include "Generated.xcconfig"
 // Avoid CodeSign races and xattr issues with parallel pod signing.
 COCOAPODS_PARALLEL_CODE_SIGN=false
+
+// Google Maps API key — replace with your key from Google Cloud Console.
+MAPS_API_KEY=AIzaSyAHlPwhJbJAwXJUad2lcN2ewkD6PmZhzeM
