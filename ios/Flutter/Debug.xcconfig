@@ -1,0 +1,4 @@
+#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
+#include "Generated.xcconfig"
+// Avoid CodeSign races and xattr issues with parallel pod signing.
+COCOAPODS_PARALLEL_CODE_SIGN=false
