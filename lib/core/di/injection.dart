@@ -12,10 +12,15 @@ import 'package:zvolta_flutter/data/datasources/home_datasource.dart';
 import 'package:zvolta_flutter/data/repositories/home_repository_impl.dart';
 import 'package:zvolta_flutter/domain/repositories/home_repository.dart';
 import 'package:zvolta_flutter/domain/usecases/get_home_dashboard_usecase.dart';
+import 'package:zvolta_flutter/data/datasources/bookings_datasource.dart';
 import 'package:zvolta_flutter/data/datasources/charge_sessions_datasource.dart';
+import 'package:zvolta_flutter/data/repositories/bookings_repository_impl.dart';
 import 'package:zvolta_flutter/data/repositories/charge_sessions_repository_impl.dart';
+import 'package:zvolta_flutter/domain/repositories/bookings_repository.dart';
 import 'package:zvolta_flutter/domain/repositories/charge_sessions_repository.dart';
+import 'package:zvolta_flutter/domain/usecases/get_bookings_usecase.dart';
 import 'package:zvolta_flutter/domain/usecases/get_charge_sessions_usecase.dart';
+import 'package:zvolta_flutter/presentation/bloc/bookings/bookings_bloc.dart';
 import 'package:zvolta_flutter/data/repositories/map_repository_impl.dart';
 import 'package:zvolta_flutter/domain/repositories/map_repository.dart';
 import 'package:zvolta_flutter/domain/usecases/get_nearby_stations_usecase.dart';
@@ -72,6 +77,13 @@ Future<void> configureDependencies() async {
       () => ChargeSessionsRepositoryImpl(localDataSource: sl()),
     )
     ..registerLazySingleton(() => GetChargeSessionsUseCase(sl()))
+    ..registerLazySingleton<BookingsLocalDataSource>(
+      BookingsLocalDataSourceImpl.new,
+    )
+    ..registerLazySingleton<BookingsRepository>(
+      () => BookingsRepositoryImpl(localDataSource: sl()),
+    )
+    ..registerLazySingleton(() => GetBookingsUseCase(sl()))
     ..registerLazySingleton<MapRepository>(MapRepositoryImpl.new)
     ..registerLazySingleton(() => GetNearbyStationsUseCase(sl()));
 
@@ -79,6 +91,7 @@ Future<void> configureDependencies() async {
     ..registerFactory(() => SplashBloc(checkAppInitializedUseCase: sl()))
     ..registerFactory(() => HomeBloc(getHomeDashboardUseCase: sl()))
     ..registerFactory(() => ChargeSessionsBloc(getChargeSessionsUseCase: sl()))
+    ..registerFactory(() => BookingsBloc(getBookingsUseCase: sl()))
     ..registerFactory<MapBloc>(
       () => MapBloc(getNearbyStationsUseCase: sl()),
     )
