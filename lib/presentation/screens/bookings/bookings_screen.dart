@@ -1,30 +1,30 @@
 import 'package:flutter/material.dart';
 
-/// Explore tab placeholder — extend with its own Bloc when needed.
-class ExploreScreen extends StatelessWidget {
-  const ExploreScreen({super.key});
+/// Bookings tab placeholder — extend with its own Bloc when needed.
+class BookingsScreen extends StatelessWidget {
+  const BookingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Explore')),
+      appBar: AppBar(title: const Text('Bookings')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.explore_outlined,
+              Icons.calendar_today_outlined,
               size: 64,
               color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(height: 16),
             Text(
-              'Explore',
+              'Bookings',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Add explore features here',
+              'Add booking features here',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],

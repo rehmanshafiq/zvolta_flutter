@@ -3,7 +3,9 @@ import 'package:equatable/equatable.dart';
 /// Bottom navigation tab identifiers.
 enum BottomNavTab {
   home,
-  explore,
+  map,
+  bookings,
+  wallet,
   profile,
 }
 
@@ -15,15 +17,8 @@ sealed class BottomNavEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-final class BottomNavTabChanged extends BottomNavEvent {
-  const BottomNavTabChanged(this.tab);
-
-  final BottomNavTab tab;
-
-  @override
-  List<Object?> get props => [tab];
-}
-
+/// Mirrors [StatefulNavigationShell.currentIndex] into Bloc state.
+/// Must never trigger routing — navigation is owned by GoRouter.
 final class BottomNavIndexChanged extends BottomNavEvent {
   const BottomNavIndexChanged(this.index);
 

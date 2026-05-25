@@ -1,18 +1,16 @@
 import 'package:equatable/equatable.dart';
-import 'package:zvolta_flutter/presentation/bloc/bottom_nav/bottom_nav_event.dart';
 
-/// Immutable state for bottom navigation.
+/// Immutable UI state for bottom navigation highlight.
+/// [currentIndex] is mirrored from GoRouter — not a navigation driver.
 final class BottomNavState extends Equatable {
-  const BottomNavState({required this.currentTab});
+  const BottomNavState({required this.currentIndex});
 
-  final BottomNavTab currentTab;
+  final int currentIndex;
 
-  int get currentIndex => BottomNavTab.values.indexOf(currentTab);
-
-  BottomNavState copyWith({BottomNavTab? currentTab}) {
-    return BottomNavState(currentTab: currentTab ?? this.currentTab);
+  BottomNavState copyWith({int? currentIndex}) {
+    return BottomNavState(currentIndex: currentIndex ?? this.currentIndex);
   }
 
   @override
-  List<Object?> get props => [currentTab];
+  List<Object?> get props => [currentIndex];
 }

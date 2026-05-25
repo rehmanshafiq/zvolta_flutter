@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:zvolta_flutter/domain/entities/user_entity.dart';
+import 'package:zvolta_flutter/domain/entities/home_dashboard_entity.dart';
 
 /// Immutable states for [HomeBloc].
 sealed class HomeState extends Equatable {
@@ -18,12 +18,12 @@ final class HomeLoading extends HomeState {
 }
 
 final class HomeLoaded extends HomeState {
-  const HomeLoaded({required this.users});
+  const HomeLoaded({required this.dashboard});
 
-  final List<UserEntity> users;
+  final HomeDashboardEntity dashboard;
 
   @override
-  List<Object?> get props => [users];
+  List<Object?> get props => [dashboard];
 }
 
 final class HomeFailure extends HomeState {

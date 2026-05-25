@@ -30,7 +30,6 @@ class ApiClient {
 
   Dio get dio => _dio;
 
-  /// GET request with automatic error parsing.
   Future<Response<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
@@ -47,7 +46,6 @@ class ApiClient {
     }
   }
 
-  /// POST request with automatic error parsing.
   Future<Response<T>> post<T>(
     String path, {
     dynamic data,
@@ -66,7 +64,6 @@ class ApiClient {
     }
   }
 
-  /// PUT request with automatic error parsing.
   Future<Response<T>> put<T>(
     String path, {
     dynamic data,
@@ -85,7 +82,6 @@ class ApiClient {
     }
   }
 
-  /// DELETE request with automatic error parsing.
   Future<Response<T>> delete<T>(
     String path, {
     dynamic data,

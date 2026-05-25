@@ -4,9 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:zvolta_flutter/core/di/injection.dart';
 import 'package:zvolta_flutter/presentation/bloc/bottom_nav/bottom_nav_bloc.dart';
 import 'package:zvolta_flutter/presentation/bloc/bottom_nav/bottom_nav_event.dart';
-import 'package:zvolta_flutter/presentation/bloc/bottom_nav/bottom_nav_state.dart';
+import 'package:zvolta_flutter/presentation/widgets/app_bottom_nav_bar.dart';
 
-/// Shell scaffold with bottom navigation, driven by [BottomNavBloc].
+/// Shell scaffold wrapping [StatefulNavigationShell].
+///
+/// Navigation ownership: **GoRouter** is the single source of truth.
+/// [BottomNavBloc] only mirrors [navigationShell.currentIndex] for UI state.
 class MainShellScreen extends StatelessWidget {
   const MainShellScreen({
     super.key,
@@ -24,59 +27,57 @@ class MainShellScreen extends StatelessWidget {
   }
 }
 
-class _MainShellView extends StatelessWidget {
+class _MainShellView extends StatefulWidget {
   const _MainShellView({required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
-  static const _destinations = [
-    NavigationDestination(
-      icon: Icon(Icons.home_outlined),
-      selectedIcon: Icon(Icons.home),
-      label: 'Home',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.explore_outlined),
-      selectedIcon: Icon(Icons.explore),
-      label: 'Explore',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.person_outline),
-      selectedIcon: Icon(Icons.person),
-      label: 'Profile',
-    ),
-  ];
+  @override
+  State<_MainShellView> createState() => _MainShellViewState();
+}
 
-  void _onDestinationSelected(BuildContext context, int index) {
-    context.read<BottomNavBloc>().add(BottomNavIndexChanged(index));
-    navigationShell.goBranch(
+class _MainShellViewState extends State<_MainShellView> {
+  @override
+  void initState() {
+    super.initState();
+    _mirrorRouterIndexToBloc();
+  }
+
+  @override
+  void didUpdateWidget(covariant _MainShellView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.navigationShell.currentIndex !=
+        widget.navigationShell.currentIndex) {
+      _mirrorRouterIndexToBloc();
+    }
+  }
+
+  /// One-way sync: GoRouter → Bloc (never triggers routing).
+  void _mirrorRouterIndexToBloc() {
+    context.read<BottomNavBloc>().add(
+          BottomNavIndexChanged(widget.navigationShell.currentIndex),
+        );
+  }
+
+  void _onItemSelected(int index) {
+    if (index == widget.navigationShell.currentIndex) return;
+
+    widget.navigationShell.goBranch(
       index,
-      initialLocation: index == navigationShell.currentIndex,
+      initialLocation: index == widget.navigationShell.currentIndex,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<BottomNavBloc, BottomNavState>(
-      listenWhen: (previous, current) =>
-          previous.currentIndex != current.currentIndex,
-      listener: (context, state) {
-        if (navigationShell.currentIndex != state.currentIndex) {
-          navigationShell.goBranch(state.currentIndex);
-        }
-      },
-      child: BlocBuilder<BottomNavBloc, BottomNavState>(
-        builder: (context, state) {
-          return Scaffold(
-            body: navigationShell,
-            bottomNavigationBar: NavigationBar(
-              selectedIndex: navigationShell.currentIndex,
-              onDestinationSelected: (index) =>
-                  _onDestinationSelected(context, index),
-              destinations: _destinations,
-            ),
-          );
-        },
+    // GoRouter index drives highlight; Bloc stays in sync via lifecycle hooks.
+    final selectedIndex = widget.navigationShell.currentIndex;
+
+    return Scaffold(
+      body: widget.navigationShell,
+      bottomNavigationBar: AppBottomNavBar(
+        currentIndex: selectedIndex,
+        onItemSelected: _onItemSelected,
       ),
     );
   }

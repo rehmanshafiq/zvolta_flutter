@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-/// Events for the home screen user list.
+/// Events for the home dashboard screen.
 sealed class HomeEvent extends Equatable {
   const HomeEvent();
 
@@ -8,8 +8,8 @@ sealed class HomeEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-final class HomeUsersRequested extends HomeEvent {
-  const HomeUsersRequested();
+final class HomeDashboardRequested extends HomeEvent {
+  const HomeDashboardRequested();
 }
 
 final class HomeRefreshRequested extends HomeEvent {

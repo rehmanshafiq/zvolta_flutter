@@ -8,19 +8,25 @@ import 'package:zvolta_flutter/data/repositories/app_repository_impl.dart';
 import 'package:zvolta_flutter/data/services/app_api_service.dart';
 import 'package:zvolta_flutter/domain/repositories/app_repository.dart';
 import 'package:zvolta_flutter/domain/usecases/check_app_initialized_usecase.dart';
-import 'package:zvolta_flutter/domain/usecases/get_users_usecase.dart';
+import 'package:zvolta_flutter/data/datasources/home_datasource.dart';
+import 'package:zvolta_flutter/data/repositories/home_repository_impl.dart';
+import 'package:zvolta_flutter/domain/repositories/home_repository.dart';
+import 'package:zvolta_flutter/domain/usecases/get_home_dashboard_usecase.dart';
+import 'package:zvolta_flutter/data/datasources/charge_sessions_datasource.dart';
+import 'package:zvolta_flutter/data/repositories/charge_sessions_repository_impl.dart';
+import 'package:zvolta_flutter/domain/repositories/charge_sessions_repository.dart';
+import 'package:zvolta_flutter/domain/usecases/get_charge_sessions_usecase.dart';
 import 'package:zvolta_flutter/presentation/bloc/bottom_nav/bottom_nav_bloc.dart';
+import 'package:zvolta_flutter/presentation/bloc/charge_sessions/charge_sessions_bloc.dart';
 import 'package:zvolta_flutter/presentation/bloc/home/home_bloc.dart';
 import 'package:zvolta_flutter/presentation/bloc/splash/splash_bloc.dart';
 
 final sl = GetIt.instance;
 
 /// Registers all dependencies with get_it.
-/// Call once before runApp().
 Future<void> configureDependencies() async {
   await GetStorage.init();
 
-  // Core
   sl
     ..registerLazySingleton(ErrorParser.new)
     ..registerLazySingleton<GetStorage>(() => GetStorage())
@@ -31,10 +37,8 @@ Future<void> configureDependencies() async {
       ),
     );
 
-  // Services
   sl.registerLazySingleton(() => AppApiService(sl()));
 
-  // Data sources
   sl
     ..registerLazySingleton<AppRemoteDataSource>(
       () => AppRemoteDataSourceImpl(sl()),
@@ -43,7 +47,6 @@ Future<void> configureDependencies() async {
       () => AppLocalDataSourceImpl(sl()),
     );
 
-  // Repositories
   sl.registerLazySingleton<AppRepository>(
     () => AppRepositoryImpl(
       remoteDataSource: sl(),
@@ -51,14 +54,24 @@ Future<void> configureDependencies() async {
     ),
   );
 
-  // Use cases
   sl
     ..registerLazySingleton(() => CheckAppInitializedUseCase(sl()))
-    ..registerLazySingleton(() => GetUsersUseCase(sl()));
+    ..registerLazySingleton<HomeLocalDataSource>(HomeLocalDataSourceImpl.new)
+    ..registerLazySingleton<HomeRepository>(
+      () => HomeRepositoryImpl(localDataSource: sl()),
+    )
+    ..registerLazySingleton(() => GetHomeDashboardUseCase(sl()))
+    ..registerLazySingleton<ChargeSessionsLocalDataSource>(
+      ChargeSessionsLocalDataSourceImpl.new,
+    )
+    ..registerLazySingleton<ChargeSessionsRepository>(
+      () => ChargeSessionsRepositoryImpl(localDataSource: sl()),
+    )
+    ..registerLazySingleton(() => GetChargeSessionsUseCase(sl()));
 
-  // Blocs — factory so each screen gets a fresh instance
   sl
     ..registerFactory(() => SplashBloc(checkAppInitializedUseCase: sl()))
-    ..registerFactory(() => HomeBloc(getUsersUseCase: sl()))
+    ..registerFactory(() => HomeBloc(getHomeDashboardUseCase: sl()))
+    ..registerFactory(() => ChargeSessionsBloc(getChargeSessionsUseCase: sl()))
     ..registerFactory(BottomNavBloc.new);
 }
