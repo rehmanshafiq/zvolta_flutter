@@ -20,7 +20,12 @@ import 'package:zvolta_flutter/domain/repositories/bookings_repository.dart';
 import 'package:zvolta_flutter/domain/repositories/charge_sessions_repository.dart';
 import 'package:zvolta_flutter/domain/usecases/get_bookings_usecase.dart';
 import 'package:zvolta_flutter/domain/usecases/get_charge_sessions_usecase.dart';
+import 'package:zvolta_flutter/data/datasources/wallet_datasource.dart';
+import 'package:zvolta_flutter/data/repositories/wallet_repository_impl.dart';
+import 'package:zvolta_flutter/domain/repositories/wallet_repository.dart';
+import 'package:zvolta_flutter/domain/usecases/get_wallet_dashboard_usecase.dart';
 import 'package:zvolta_flutter/presentation/bloc/bookings/bookings_bloc.dart';
+import 'package:zvolta_flutter/presentation/bloc/wallet/wallet_bloc.dart';
 import 'package:zvolta_flutter/data/repositories/map_repository_impl.dart';
 import 'package:zvolta_flutter/domain/repositories/map_repository.dart';
 import 'package:zvolta_flutter/domain/usecases/get_nearby_stations_usecase.dart';
@@ -84,6 +89,13 @@ Future<void> configureDependencies() async {
       () => BookingsRepositoryImpl(localDataSource: sl()),
     )
     ..registerLazySingleton(() => GetBookingsUseCase(sl()))
+    ..registerLazySingleton<WalletLocalDataSource>(
+      WalletLocalDataSourceImpl.new,
+    )
+    ..registerLazySingleton<WalletRepository>(
+      () => WalletRepositoryImpl(localDataSource: sl()),
+    )
+    ..registerLazySingleton(() => GetWalletDashboardUseCase(sl()))
     ..registerLazySingleton<MapRepository>(MapRepositoryImpl.new)
     ..registerLazySingleton(() => GetNearbyStationsUseCase(sl()));
 
@@ -92,6 +104,7 @@ Future<void> configureDependencies() async {
     ..registerFactory(() => HomeBloc(getHomeDashboardUseCase: sl()))
     ..registerFactory(() => ChargeSessionsBloc(getChargeSessionsUseCase: sl()))
     ..registerFactory(() => BookingsBloc(getBookingsUseCase: sl()))
+    ..registerFactory(() => WalletBloc(getWalletDashboardUseCase: sl()))
     ..registerFactory<MapBloc>(
       () => MapBloc(getNearbyStationsUseCase: sl()),
     )
