@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -39,6 +41,53 @@ class _MapViewState extends State<_MapView> {
   GoogleMapController? _mapController;
   bool _shouldRenderMap = false;
   _MapFilters _filters = _MapFilters.initial();
+  BitmapDescriptor? _userLocationIcon;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserLocationIcon();
+  }
+
+  Future<void> _loadUserLocationIcon() async {
+    final icon = await _createUserLocationIcon();
+    if (mounted) {
+      setState(() => _userLocationIcon = icon);
+    }
+  }
+
+  Future<BitmapDescriptor> _createUserLocationIcon() async {
+    const size = 48.0;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final center = Offset(size / 2, size / 2);
+
+    canvas.drawCircle(
+      center,
+      20,
+      Paint()..color = AppColors.mapPinBlueColor.withValues(alpha: 0.18),
+    );
+    canvas.drawCircle(
+      center,
+      10,
+      Paint()..color = AppColors.whiteColor,
+    );
+    canvas.drawCircle(
+      center,
+      8,
+      Paint()..color = AppColors.mapPinBlueColor,
+    );
+
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(size.toInt(), size.toInt());
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+
+    return BitmapDescriptor.bytes(
+      byteData!.buffer.asUint8List(),
+      width: size,
+      height: size,
+    );
+  }
 
   @override
   void didChangeDependencies() {
@@ -66,8 +115,11 @@ class _MapViewState extends State<_MapView> {
     super.dispose();
   }
 
-  Set<Marker> _buildMarkers(List<ChargingStationEntity> stations) {
-    return stations.map((station) {
+  Set<Marker> _buildMarkers(
+    List<ChargingStationEntity> stations,
+    LatLng userLocation,
+  ) {
+    final markers = stations.map((station) {
       return Marker(
         markerId: MarkerId(station.id),
         position: LatLng(station.latitude, station.longitude),
@@ -77,6 +129,20 @@ class _MapViewState extends State<_MapView> {
             ),
       );
     }).toSet();
+
+    if (_userLocationIcon != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('user_location'),
+          position: userLocation,
+          icon: _userLocationIcon!,
+          anchor: const Offset(0.5, 0.5),
+          zIndexInt: 2,
+        ),
+      );
+    }
+
+    return markers;
   }
 
   List<ChargingStationEntity> _applyFilters(
@@ -180,7 +246,10 @@ class _MapViewState extends State<_MapView> {
                       state: state,
                       shouldRenderMap: _shouldRenderMap,
                       filteredStations: filteredStations,
-                      markers: _buildMarkers(filteredStations),
+                      markers: _buildMarkers(
+                        filteredStations,
+                        state.userLocation,
+                      ),
                       onMapCreated: (controller) => _mapController = controller,
                       onZoomIn: () => _mapController?.animateCamera(
                         CameraUpdate.zoomIn(),
@@ -238,24 +307,6 @@ class _MapModeView extends StatelessWidget {
               zoom: 12,
             ),
             markers: markers,
-            circles: {
-              Circle(
-                circleId: const CircleId('current_location'),
-                center: state.userLocation,
-                radius: 18,
-                fillColor: AppColors.homeIconGreen.withValues(alpha: 0.20),
-                strokeColor: AppColors.whiteColor,
-                strokeWidth: 3,
-              ),
-              Circle(
-                circleId: const CircleId('current_location_dot'),
-                center: state.userLocation,
-                radius: 7,
-                fillColor: Colors.blueAccent,
-                strokeColor: AppColors.whiteColor,
-                strokeWidth: 2,
-              ),
-            },
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
             mapToolbarEnabled: false,

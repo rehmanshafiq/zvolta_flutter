@@ -43,16 +43,16 @@ class ProfileHeader extends StatelessWidget {
                       height: 72,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
+                        color: AppColors.whiteColor.withValues(alpha: 0.15),
                         border: Border.all(
                           color: AppColors.whiteColor.withValues(alpha: 0.35),
                           width: 2,
                         ),
-                        image: const DecorationImage(
-                          image: NetworkImage(
-                            'https://images.unsplash.com/photo-1541701494587-5851ff649475?w=200',
-                          ),
-                          fit: BoxFit.cover,
-                        ),
+                      ),
+                      child: const Icon(
+                        Icons.person_rounded,
+                        size: 36,
+                        color: AppColors.whiteColor,
                       ),
                     ),
                     Positioned(

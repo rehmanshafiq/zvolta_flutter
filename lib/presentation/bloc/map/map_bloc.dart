@@ -32,10 +32,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
     final location = current is MapLoaded
         ? current.userLocation
-        : const LatLng(
-            MapLocalDataSource.defaultLatitude,
-            MapLocalDataSource.defaultLongitude,
-          );
+        : await _resolveUserLocation();
 
     final result = await _getNearbyStationsUseCase(
       GetNearbyStationsParams(
