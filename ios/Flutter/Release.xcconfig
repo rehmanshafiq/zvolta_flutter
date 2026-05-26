@@ -3,4 +3,4 @@
 COCOAPODS_PARALLEL_CODE_SIGN=false
 
 // Google Maps API key — replace with your key from Google Cloud Console.
-MAPS_API_KEY=YOUR_GOOGLE_MAPS_API_KEY_HERE
+MAPS_API_KEY=AIzaSyAHlPwhJbJAwXJUad2lcN2ewkD6PmZhzeM

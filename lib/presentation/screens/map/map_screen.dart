@@ -2,7 +2,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:zvolta_flutter/core/constants/app_colors.dart';
 import 'package:zvolta_flutter/core/di/injection.dart';
@@ -10,7 +9,6 @@ import 'package:zvolta_flutter/domain/entities/charging_station_entity.dart';
 import 'package:zvolta_flutter/presentation/bloc/map/map_bloc.dart';
 import 'package:zvolta_flutter/presentation/bloc/map/map_event.dart';
 import 'package:zvolta_flutter/presentation/bloc/map/map_state.dart';
-import 'package:zvolta_flutter/presentation/bloc/bottom_nav/bottom_nav_event.dart';
 import 'package:zvolta_flutter/presentation/widgets/app_error_view.dart';
 import 'package:zvolta_flutter/presentation/widgets/app_loading_indicator.dart';
 import 'package:zvolta_flutter/presentation/widgets/map/map_search_bar.dart';
@@ -39,7 +37,6 @@ class _MapView extends StatefulWidget {
 
 class _MapViewState extends State<_MapView> {
   GoogleMapController? _mapController;
-  bool _shouldRenderMap = false;
   _MapFilters _filters = _MapFilters.initial();
   BitmapDescriptor? _userLocationIcon;
 
@@ -87,26 +84,6 @@ class _MapViewState extends State<_MapView> {
       width: size,
       height: size,
     );
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _syncMapVisibility();
-  }
-
-  /// Avoid creating Android PlatformView while the tab is off-screen (IndexedStack).
-  void _syncMapVisibility() {
-    final shell = StatefulNavigationShell.maybeOf(context);
-    final isMapTabActive = shell?.currentIndex == BottomNavTab.map.index;
-
-    if (isMapTabActive && !_shouldRenderMap) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() => _shouldRenderMap = true);
-        }
-      });
-    }
   }
 
   @override
@@ -244,7 +221,6 @@ class _MapViewState extends State<_MapView> {
                     )
                   : _MapModeView(
                       state: state,
-                      shouldRenderMap: _shouldRenderMap,
                       filteredStations: filteredStations,
                       markers: _buildMarkers(
                         filteredStations,
@@ -272,7 +248,6 @@ class _MapViewState extends State<_MapView> {
 class _MapModeView extends StatelessWidget {
   const _MapModeView({
     required this.state,
-    required this.shouldRenderMap,
     required this.filteredStations,
     required this.markers,
     required this.onMapCreated,
@@ -284,7 +259,6 @@ class _MapModeView extends StatelessWidget {
   });
 
   final MapLoaded state;
-  final bool shouldRenderMap;
   final List<ChargingStationEntity> filteredStations;
   final Set<Marker> markers;
   final ValueChanged<GoogleMapController> onMapCreated;
@@ -300,27 +274,17 @@ class _MapModeView extends StatelessWidget {
 
     return Stack(
       children: [
-        if (shouldRenderMap)
-          GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: state.userLocation,
-              zoom: 12,
-            ),
-            markers: markers,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
-            onMapCreated: onMapCreated,
-          )
-        else
-          const ColoredBox(
-            color: AppColors.homeBackground,
-            child: Center(
-              child: CircularProgressIndicator(
-                color: AppColors.homeIconGreen,
-              ),
-            ),
+        GoogleMap(
+          initialCameraPosition: CameraPosition(
+            target: state.userLocation,
+            zoom: 12,
           ),
+          markers: markers,
+          myLocationButtonEnabled: false,
+          zoomControlsEnabled: false,
+          mapToolbarEnabled: false,
+          onMapCreated: onMapCreated,
+        ),
         Positioned(
           top: 12,
           left: 16,

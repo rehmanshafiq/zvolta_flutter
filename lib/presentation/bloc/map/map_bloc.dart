@@ -148,7 +148,11 @@ class MapBloc extends Bloc<MapEvent, MapState> {
         }
       }
 
-      final position = await Geolocator.getCurrentPosition();
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          timeLimit: Duration(seconds: 8),
+        ),
+      );
       return LatLng(position.latitude, position.longitude);
     } catch (_) {
       return const LatLng(
