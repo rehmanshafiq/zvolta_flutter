@@ -14,6 +14,7 @@ import 'package:zvolta_flutter/presentation/widgets/wallet/wallet_header.dart';
 import 'package:zvolta_flutter/presentation/widgets/wallet/wallet_history_transaction_card.dart';
 import 'package:zvolta_flutter/presentation/widgets/wallet/wallet_plans_coming_soon.dart';
 import 'package:zvolta_flutter/presentation/widgets/wallet/wallet_promo_section.dart';
+import 'package:zvolta_flutter/presentation/widgets/wallet/wallet_top_up_bottom_sheet.dart';
 import 'package:zvolta_flutter/presentation/widgets/wallet/wallet_weekend_banner.dart';
 
 /// Wallet tab — balance, promo offers, history, and plans.
@@ -52,6 +53,13 @@ class _WalletView extends StatelessWidget {
     );
   }
 
+  Future<void> _openTopUpSheet(BuildContext context) async {
+    final amount = await WalletTopUpBottomSheet.show(context);
+    if (amount != null && context.mounted) {
+      _showSnackBar(context, 'Top up PKR $amount initiated');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +77,7 @@ class _WalletView extends StatelessWidget {
                       .read<WalletBloc>()
                       .add(const WalletRefreshRequested()),
                 ),
-              WalletLoaded() => RefreshIndicator(
+              WalletLoaded walletState => RefreshIndicator(
                   onRefresh: () async {
                     context
                         .read<WalletBloc>()
@@ -79,9 +87,10 @@ class _WalletView extends StatelessWidget {
                         );
                   },
                   child: _WalletContent(
-                    state: state,
-                    onTopUpTap: () =>
-                        _showSnackBar(context, 'Top up coming soon'),
+                    state: walletState,
+                    onTopUpTap: () {
+                      _openTopUpSheet(context);
+                    },
                     onPromoApply: (code) {
                       context.read<WalletBloc>().add(WalletPromoApplied(code));
                       _showSnackBar(
